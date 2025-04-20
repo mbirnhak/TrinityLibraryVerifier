@@ -1,0 +1,47 @@
+<!-- views/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trinity College Library Verification Service</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Trinity College Library</h1>
+            <h2>Book Issuance Verification Service</h2>
+        </header>
+
+        <div class="card">
+            <h3>Welcome to the Library Verification Service</h3>
+            <p>This service verifies your digital credentials for library services in compliance with eIDAS 2.0
+                standards.</p>
+
+            <form action="/verify" method="get">
+                <div class="form-group">
+                    <label for="type">Select Service:</label>
+                    <select name="type" id="type" required>
+                        <option value="book_issuance">Book Issuance Service</option>
+                        <option value="book_return">Book Return Service</option>
+                        <option value="membership_renewal">Membership Renewal</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn primary-btn">Verify</button>
+                </div>
+            </form>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Trinity College Digital Services</p>
+            <a href="/view_logs" class="log-link">View Logs</a>
+        </footer>
+    </div>
+</body>
+
+</html>

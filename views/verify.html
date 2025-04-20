@@ -1,0 +1,77 @@
+<!-- views/verify.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Request | Trinity College Library</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Trinity College Library</h1>
+            <h2>Book Issuance Verification Service</h2>
+        </header>
+
+        <div class="card">
+            <h3>Verification Request</h3>
+            <p>Please open your Trinity Digital Wallet app to complete verification.</p>
+
+            <div class="wallet-link">
+                <p>If your mobile device is different from this one, use this link:</p>
+                <a href="<%= wallet_link %>" class="btn wallet-btn">Open Trinity Wallet</a>
+                <p class="small-text">This will open your Trinity Digital Wallet and request permission to verify your
+                    library credentials.</p>
+            </div>
+
+            <div class="status-container">
+                <p>Waiting for credential verification...</p>
+                <div class="loader"></div>
+            </div>
+
+            <div class="request-info">
+                <p>Request ID: <span class="monospace">
+                        <%= request_id %>
+                    </span></p>
+
+                <!-- For testing only - this would be removed in production -->
+                <div class="test-controls">
+                    <p class="test-note">For testing without a wallet:</p>
+                    <a href="/simulate-presentation/<%= request_id %>" class="btn test-btn">Simulate Successful
+                        Verification</a>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Trinity College Digital Services</p>
+        </footer>
+    </div>
+
+    <script>
+        // Check verification status every 3 seconds
+        let checkStatusInterval;
+
+        function checkVerificationStatus() {
+            fetch('/check-status/<%= request_id %>')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'verified' || data.status === 'failed') {
+                        clearInterval(checkStatusInterval);
+                        window.location.href = '/result/<%= request_id %>';
+                    }
+                })
+                .catch(err => console.error('Error checking status:', err));
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Start checking status after 3 seconds
+            checkStatusInterval = setInterval(checkVerificationStatus, 3000);
+        });
+    </script>
+</body>
+
+</html>

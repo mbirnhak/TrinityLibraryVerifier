@@ -1,0 +1,61 @@
+<!-- views/result.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Result | Trinity College Library</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Trinity College Library</h1>
+            <h2>Book Issuance Verification Service</h2>
+        </header>
+
+        <div class="card">
+            <h3>Verification Result</h3>
+
+            <% if (status=='verified' ) { %>
+                <div class="result success">
+                    <div class="status-icon">✓</div>
+                    <h4>Verification Successful</h4>
+                    <p>Your library credentials have been verified successfully.</p>
+                </div>
+
+                <div class="credential-details">
+                    <h4>Credential Details</h4>
+                    <pre><%= JSON.stringify(credential_data, null, 2) %></pre>
+                </div>
+
+                <div class="next-steps">
+                    <h4>Next Steps</h4>
+                    <p>You may now proceed to the library desk to complete the <%= verification_type.replace('_', ' ' )
+                            %> process.</p>
+                </div>
+                <% } else { %>
+                    <div class="result failure">
+                        <div class="status-icon">✗</div>
+                        <h4>Verification Failed</h4>
+                        <p>We couldn't verify your library credentials.</p>
+                    </div>
+
+                    <div class="next-steps">
+                        <h4>Next Steps</h4>
+                        <p>Please visit the library information desk with your ID card to resolve this issue.</p>
+                    </div>
+                    <% } %>
+
+                        <a href="/" class="btn secondary-btn">Return to Home</a>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Trinity College Digital Services</p>
+        </footer>
+    </div>
+</body>
+
+</html>
