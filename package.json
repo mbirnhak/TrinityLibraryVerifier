@@ -1,6 +1,7 @@
 {
   "name": "trinitylibraryverifier",
   "version": "1.0.0",
+  "type": "module",
   "description": "Library Verification Service using Express.js",
   "main": "index.js",
   "scripts": {
@@ -10,6 +11,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sd-jwt/crypto-nodejs": "^0.10.0",
+    "@sd-jwt/sd-jwt-vc": "^0.10.0",
+    "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.1",

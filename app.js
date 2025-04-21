@@ -1,15 +1,30 @@
 // app.js - Library Verification Service
-/**
- * Add a method verify which has the verification logic embedded.
- * Add the redirect back to the wallet app, after showing the success or failure page and include the check-status url
- */
-const express = require('express');
-const session = require('express-session');
-const { v4: uuidv4 } = require('uuid');
-const morgan = require('morgan');
-const fs = require('fs');
-const path = require('path');
-const winston = require('winston');
+import express from 'express';
+import session from 'express-session';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import ejs from 'ejs';
+import path from 'path';
+import dotenv from "dotenv";
+import winston from 'winston';
+import { CredentialVerification } from "./verification/credentialVerification.mjs";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config();
+const publicKey = JSON.parse(process.env.PUBLIC_KEY);
+const issuanceService = new CredentialVerification();
+issuanceService.initialize(publicKey)
+    .then(() => {
+        console.log('Initialization complete');
+    })
+    .catch(err => {
+        console.error('Initialization error:', err);
+        process.exit(1);
+    });
 
 // Configure logging
 const logger = winston.createLogger({
@@ -38,7 +53,7 @@ app.use(session({
 
 // Setup view engine
 app.set('view engine', 'html');
-app.engine('html', require('ejs').renderFile);
+app.engine('html', ejs.renderFile);
 app.set('views', path.join(__dirname, 'views'));
 
 // Configuration
@@ -82,7 +97,7 @@ app.get('/verify', (req, res) => {
     logger.info(`Verification type: ${verificationType}`);
 
     // Create request URI that will be sent to the wallet
-    const requestUri = `${req.protocol}://${req.get('host')}/presentation-request/${requestId}`;
+    const requestUri = `https://${req.get('host')}/presentation-request/${requestId}`;
 
     // Create deep link to wallet app
     const walletLink = `${PRESENTATION_CALLBACK_URI}?request_uri=${requestUri}&client_id=${CLIENT_ID}`;
@@ -115,7 +130,7 @@ app.get('/presentation-request/:request_id', (req, res) => {
         type: verificationRequests[requestId].type,
         required_credentials: ['library_membership'],
         client_id: CLIENT_ID,
-        callback_url: `${req.protocol}://${req.get('host')}/submit-presentation/${requestId}`
+        callback_url: `https://${req.get('host')}/submit-presentation/${requestId}`
     };
 
     logger.info(`Sending presentation request details: ${JSON.stringify(presentationRequestData)}`);
@@ -123,7 +138,7 @@ app.get('/presentation-request/:request_id', (req, res) => {
     return res.json(presentationRequestData);
 });
 
-app.post('/submit-presentation/:request_id', (req, res) => {
+app.post('/submit-presentation/:request_id', async (req, res) => {
     /**
      * Endpoint for the wallet to submit the verifiable presentation.
      */
@@ -134,31 +149,43 @@ app.post('/submit-presentation/:request_id', (req, res) => {
     }
 
     logger.info(`Received presentation submission for request ID: ${requestId}`);
-
     // Extract credential data from the request
     const credentialData = req.body;
     logger.info(`Received credential data: ${JSON.stringify(credentialData)}`);
-
-    // Store the credential data
-    verificationRequests[requestId].credential_data = credentialData;
 
     // Process the verification (in a real app, you would validate the credential)
     // For now, we'll simply mark it as 'verified' if it contains some expected data
     let verificationSuccess = false;
 
-    if (credentialData && 'credential' in credentialData) {
-        verificationRequests[requestId].status = 'verified';
-        verificationSuccess = true;
-        logger.info(`Verification successful for request ID: ${requestId}`);
-    } else {
-        verificationRequests[requestId].status = 'failed';
-        logger.info(`Verification failed for request ID: ${requestId}`);
+    try {
+        if (credentialData && 'credential' in credentialData) {
+            // Attempt to verify the credential. Verification returns credential details or false
+            const validationResult = await issuanceService.verifyCredential(credentialData.credential);
+            if (validationResult !== false && typeof validationResult === 'object' && validationResult !== null) {
+                verificationRequests[requestId].status = 'verified';
+                // Store the credential data
+                verificationRequests[requestId].credential_data = validationResult;
+                verificationSuccess = true;
+                logger.info(`Verification successful for request ID: ${requestId}`);
+            } else {
+                verificationRequests[requestId].status = 'failed';
+                logger.info(`Verification failed: invalid credential for request ID: ${requestId}`);
+            }
+        } else {
+            verificationRequests[requestId].status = 'failed';
+            logger.info(`Verification failed: missing credential data for request ID: ${requestId}`);
+        }
+    } catch (error) {
+        verificationRequests[requestId].status = 'error';
+        verificationSuccess = false;
+        logger.error(`Verification error for request ID: ${requestId}: ${error.message}`);
     }
 
     // Return success or failure
-    return res.json({
+    return res.status(verificationSuccess ? 200 : 400).json({
         status: verificationSuccess ? 'success' : 'failed',
-        redirect_url: `${req.protocol}://${req.get('host')}/result/${requestId}`
+        message: verificationSuccess ? 'Credential verified successfully' : 'Credential verification failed',
+        redirect_url: `https://${req.get('host')}/result/${requestId}`
     });
 });
 
@@ -268,4 +295,4 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-module.exports = app;
+export default app;
