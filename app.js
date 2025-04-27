@@ -182,15 +182,25 @@ app.post('/submit-presentation/:request_id', async (req, res) => {
             console.log('Missing credential data:', credentialData);
             console.log('Request body:', req.body);
             logger.info(`Verification failed: missing credential data for request ID: ${requestId}`);
+            return res.status(400).json({
+                status: 'failed',
+                message: 'Missing credential data in request',
+                redirect_url: `https://${req.get('host')}/result/${requestId}`
+            });
         }
     } catch (error) {
         verificationRequests[requestId].status = 'error';
         verificationSuccess = false;
         logger.error(`Verification error for request ID: ${requestId}: ${error.message}`);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Internal server error during verification',
+            redirect_url: `https://${req.get('host')}/result/${requestId}`
+        });
     }
 
-    // Return success or failure
-    return res.status(verificationSuccess ? 200 : 400).json({
+    // Return 200 for successful processing (even if verification failed)
+    return res.status(200).json({
         status: verificationSuccess ? 'success' : 'failed',
         message: verificationSuccess ? 'Credential verified successfully' : 'Credential verification failed',
         redirect_url: `https://${req.get('host')}/result/${requestId}`
