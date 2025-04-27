@@ -7,6 +7,7 @@ SECRET_KEY=your_secret_key
 WALLET_REDIRECT_URI=your_wallet_redirect_uri
 VERIFIER_CALLBACK_URI=http://localhost:5000/callback # Or your own url
 LOG_LEVEL=INFO
+PUBLIC_KEY={ issuers_public_CrytpoKey }
 ```
 
 #### Environment Variables
