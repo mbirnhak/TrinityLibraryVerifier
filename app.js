@@ -168,11 +168,19 @@ app.post('/submit-presentation/:request_id', async (req, res) => {
                 verificationSuccess = true;
                 logger.info(`Verification successful for request ID: ${requestId}`);
             } else {
+                console.log('Invalid credential data:', credentialData);
+                console.log('Validation result:', validationResult);
                 verificationRequests[requestId].status = 'failed';
+                verificationRequests[requestId].credential_data = null;
+                verificationSuccess = false;
                 logger.info(`Verification failed: invalid credential for request ID: ${requestId}`);
             }
         } else {
             verificationRequests[requestId].status = 'failed';
+            verificationRequests[requestId].credential_data = null;
+            verificationSuccess = false;
+            console.log('Missing credential data:', credentialData);
+            console.log('Request body:', req.body);
             logger.info(`Verification failed: missing credential data for request ID: ${requestId}`);
         }
     } catch (error) {

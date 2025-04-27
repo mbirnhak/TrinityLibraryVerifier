@@ -15,3 +15,4 @@ LOG_LEVEL=INFO
 - `WALLET_REDIRECT_URI`: URI scheme for the eIDAS wallet app
 - `VERIFIER_CALLBACK_URI`: Callback URI that the wallet app will use to send credentials
 - `LOG_LEVEL`: Optional. Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- `PUBLIC_KEY`: Verifiers public key - needed for verifying credential signature
